@@ -66,6 +66,7 @@ function M.open(filepath_override, is_headless)
     on_complete = function()
       local payload = table.concat(chunks)
       if #payload == 0 then
+        renderer.cleanup_terminal(nil)
         vim.notify("[SpatialNav] Received empty response from daemon.", vim.log.levels.WARN)
         return
       end
@@ -83,6 +84,7 @@ function M.open(filepath_override, is_headless)
       )
     end,
     on_error = function(err)
+      renderer.cleanup_terminal(nil)
       local msg = string.format("[SpatialNav] Socket IPC failed: %s\nEnsure spatial_daemon is running at %s", tostring(err), M.options.socket_path)
       vim.notify(msg, vim.log.levels.ERROR)
     end,
