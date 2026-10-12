@@ -59,4 +59,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/spatial_daemon.dir/DependInfo.cmake"
   "CMakeFiles/test_parser.dir/DependInfo.cmake"
   "CMakeFiles/test_physics.dir/DependInfo.cmake"
+  "CMakeFiles/test_raster.dir/DependInfo.cmake"
   )

@@ -68,28 +68,13 @@ static void handle_client_request(int client_fd, int epoll_fd) {
         } else {
             fprintf(stderr, "[spatial_daemon] Warning: parse_source_file failed for '%s'\n", buf);
         }
-        graph_free(&graph);
 
-        char response[BUFFER_SIZE + 32];
-        int resp_len = snprintf(response, sizeof(response), "ACK: %s\n", buf);
-        if (resp_len > 0) {
-            ssize_t total_written = 0;
-            while (total_written < resp_len) {
-                ssize_t written = write(client_fd, response + total_written, (size_t)(resp_len - total_written));
-                if (written < 0) {
-                    if (errno == EINTR) {
-                        continue;
-                    }
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        /* For Phase 1 ACK responses, the buffer fits well within SO_SNDBUF */
-                        continue;
-                    }
-                    perror("[spatial_daemon] write");
-                    break;
-                }
-                total_written += written;
-            }
-        }
+        /* Phase 4 & 5: Render and stream Sixel payload to client */
+        printf("[spatial_daemon] Rendering and streaming SIXEL payload to client...\n");
+        render_graph_to_sixel(&graph, client_fd);
+        printf("[spatial_daemon] SIXEL stream complete.\n");
+
+        graph_free(&graph);
     } else if (bytes_read == 0) {
         /* Client closed connection without payload */
     } else {

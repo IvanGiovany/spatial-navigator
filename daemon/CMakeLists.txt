@@ -117,3 +117,21 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_physics.c")
         m
     )
 endif()
+
+# Test executable for Software Rasterizer & Sixel (Phase 4)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_raster.c")
+    add_executable(test_raster
+        tests/test_raster.c
+        src/render.c
+        src/graph.c
+    )
+    target_include_directories(test_raster PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${EXTRA_INCLUDES}
+    )
+    target_link_libraries(test_raster PRIVATE
+        ${EXTRA_LIBS}
+        Threads::Threads
+        m
+    )
+endif()

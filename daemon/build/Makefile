@@ -168,6 +168,19 @@ test_physics/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/build
 .PHONY : test_physics/fast
 
+#=============================================================================
+# Target rules for targets named test_raster
+
+# Build rule for target.
+test_raster: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_raster
+.PHONY : test_raster
+
+# fast build rule for target.
+test_raster/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/build
+.PHONY : test_raster/fast
+
 src/graph.o: src/graph.c.o
 .PHONY : src/graph.o
 
@@ -176,6 +189,7 @@ src/graph.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/graph.c.o
 .PHONY : src/graph.c.o
 
 src/graph.i: src/graph.c.i
@@ -186,6 +200,7 @@ src/graph.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/graph.c.i
 .PHONY : src/graph.c.i
 
 src/graph.s: src/graph.c.s
@@ -196,6 +211,7 @@ src/graph.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/graph.c.s
 .PHONY : src/graph.c.s
 
 src/main.o: src/main.c.o
@@ -255,6 +271,7 @@ src/render.o: src/render.c.o
 # target to build an object file
 src/render.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/render.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/render.c.o
 .PHONY : src/render.c.o
 
 src/render.i: src/render.c.i
@@ -263,6 +280,7 @@ src/render.i: src/render.c.i
 # target to preprocess a source file
 src/render.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/render.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/render.c.i
 .PHONY : src/render.c.i
 
 src/render.s: src/render.c.s
@@ -271,6 +289,7 @@ src/render.s: src/render.c.s
 # target to generate assembly for a file
 src/render.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/render.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/src/render.c.s
 .PHONY : src/render.c.s
 
 tests/test_parser.o: tests/test_parser.c.o
@@ -321,6 +340,30 @@ tests/test_physics.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/tests/test_physics.c.s
 .PHONY : tests/test_physics.c.s
 
+tests/test_raster.o: tests/test_raster.c.o
+.PHONY : tests/test_raster.o
+
+# target to build an object file
+tests/test_raster.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/tests/test_raster.c.o
+.PHONY : tests/test_raster.c.o
+
+tests/test_raster.i: tests/test_raster.c.i
+.PHONY : tests/test_raster.i
+
+# target to preprocess a source file
+tests/test_raster.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/tests/test_raster.c.i
+.PHONY : tests/test_raster.c.i
+
+tests/test_raster.s: tests/test_raster.c.s
+.PHONY : tests/test_raster.s
+
+# target to generate assembly for a file
+tests/test_raster.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_raster.dir/build.make CMakeFiles/test_raster.dir/tests/test_raster.c.s
+.PHONY : tests/test_raster.c.s
+
 usr/src/tree-sitter/c/0.21.3/parser/src/parser.o: usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o
 .PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.o
 
@@ -356,6 +399,7 @@ help:
 	@echo "... spatial_daemon"
 	@echo "... test_parser"
 	@echo "... test_physics"
+	@echo "... test_raster"
 	@echo "... tree_sitter_c_grammar"
 	@echo "... src/graph.o"
 	@echo "... src/graph.i"
@@ -375,6 +419,9 @@ help:
 	@echo "... tests/test_physics.o"
 	@echo "... tests/test_physics.i"
 	@echo "... tests/test_physics.s"
+	@echo "... tests/test_raster.o"
+	@echo "... tests/test_raster.i"
+	@echo "... tests/test_raster.s"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.o"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.i"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.s"
