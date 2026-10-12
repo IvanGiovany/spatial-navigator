@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/test_raster.dir/link.d CMakeFiles/test_raster.dir/tests/test_raster.c.o CMakeFiles/test_raster.dir/src/render.c.o CMakeFiles/test_raster.dir/src/graph.c.o -o test_raster  -ltree-sitter -lsixel libtree_sitter_c_grammar.a -lm

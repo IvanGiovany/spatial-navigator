@@ -67,18 +67,28 @@ Once Neovim is open showing the C code:
    :SpatialNav
    ```
 3. The display will seamlessly switch to the terminal's full 3D canvas showing:
-   - Your functions rendered as **3D shaded spheres** (Gold for `main`, Cyan for callers, and Mint green for leaf functions).
-   - Lines connecting functions that call each other.
-   - An info bar at the bottom with target file details.
-   - The Sixel image is also saved to `/tmp/spatial_nav_render.sixel` if you want to inspect or share it.
+   - Your functions rendered as **volumetric 3D shaded spheres** with Blinn-Phong lighting highlights.
+   - **Crisp in-scene function labels** (`main`, `compute`, `helper`) projected into 3D world space.
+   - **Sub-pixel anti-aliased lines** connecting functions that call each other with true depth occlusion.
+   - Professional **Catppuccin Mocha** visual hierarchy (Peach for `main`, Blue for call hubs, Cyan for callers, and Green for leaf functions).
+   - An interactive HUD status bar at the bottom.
 
 ---
 
-## Step 5: How to Return to Your Code
+## Step 5: Interactive 3D Navigation Controls
 
-When you are done exploring the 3D map:
-- Simply press **`q`**, **`Esc`**, or **`Enter`** on your keyboard.
-- The terminal will instantly return you to your exact Neovim editor buffer.
+Inside the 3D visualization canvas:
+
+| Key | Action | Description |
+|:---:|:---|:---|
+| **`h`** / **`Left`** | Orbit Left | Rotates camera yaw counter-clockwise around the graph |
+| **`l`** / **`Right`** | Orbit Right | Rotates camera yaw clockwise around the graph |
+| **`j`** / **`Down`** | Orbit Down | Pitches camera downward |
+| **`k`** / **`Up`** | Orbit Up | Pitches camera upward |
+| **`+`** / **`=`** | Zoom In | Smoothly brings camera closer to the codebase centroid |
+| **`-`** / **`_`** | Zoom Out | Expands camera field to view the broader architecture |
+| **`r`** | Reset Camera | Restores default orbit orientation and zoom |
+| **`q`** / **`Esc`** | Exit Canvas | Returns cleanly to your exact Neovim buffer without redrawing glitches |
 
 ---
 
@@ -89,5 +99,9 @@ When you are done exploring the 3D map:
 | **Start Daemon** | `cd /mnt/c/Users/Ivan/Documents/spatial-navigator && ./daemon/build/spatial_daemon` |
 | **Open Neovim** | `nvim --cmd "set rtp+=./nvim-plugin" <path-to-file.c>` |
 | **View 3D Graph** | `:SpatialNav` (inside Neovim, then press `Enter`) |
+| **Orbit Camera** | `h` / `j` / `k` / `l` or Arrow keys |
+| **Zoom In / Out** | `+` / `-` |
+| **Reset Orientation** | `r` |
 | **Close 3D View** | Press `q` or `Esc` |
 | **Stop Daemon** | Click in the daemon terminal and press `Ctrl + C` |
+

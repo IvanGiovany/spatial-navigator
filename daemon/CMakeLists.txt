@@ -71,6 +71,8 @@ add_executable(spatial_daemon
     src/parser.c
     src/graph.c
     src/render.c
+    src/math3d.c
+    src/font.c
 )
 
 target_include_directories(spatial_daemon PRIVATE
@@ -90,6 +92,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_parser.c")
         tests/test_parser.c
         src/parser.c
         src/graph.c
+        src/math3d.c
     )
     target_include_directories(test_parser PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -107,6 +110,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_physics.c")
     add_executable(test_physics
         tests/test_physics.c
         src/graph.c
+        src/math3d.c
     )
     target_include_directories(test_physics PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -118,12 +122,14 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_physics.c")
     )
 endif()
 
-# Test executable for Software Rasterizer & Sixel (Phase 4)
+# Test executable for Software Rasterizer & Sixel (Phase 4 / V2)
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_raster.c")
     add_executable(test_raster
         tests/test_raster.c
         src/render.c
         src/graph.c
+        src/math3d.c
+        src/font.c
     )
     target_include_directories(test_raster PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -135,3 +141,4 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_raster.c")
         m
     )
 endif()
+

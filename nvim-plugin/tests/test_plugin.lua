@@ -61,10 +61,12 @@ local saved = renderer.save_cache_file(test_cache, dummy_sixel)
 assert_true(saved == true, "Failed to save cache file")
 assert_true(vim.fn.filereadable(test_cache) == 1, "Cache file not readable on disk")
 
--- Test /dev/tty overlay in headless mode (is_headless = true avoids blocking on getchar)
-local rendered = renderer.render("auto", dummy_sixel, test_cache, "/dummy/sample.c", true)
-assert_true(rendered == true, "render() failed in headless mode")
+-- Test overlay in headless mode (is_headless = true avoids blocking on getchar)
+local ipc_mod = require("spatial_nav.ipc")
+local rendered = renderer.render_interactive_overlay(ipc_mod, "/tmp/spatial_nav.sock", "/dummy/sample.c", dummy_sixel, true)
+assert_true(rendered == true, "render_interactive_overlay() failed in headless mode")
 log("Test 2 PASSED: Direct host terminal renderer verified.")
+
 
 --------------------------------------------------------------------------------
 -- Test 3: Resilient IPC Error Handling (Offline Socket)
@@ -165,11 +167,13 @@ if is_live then
   local st_term = string.sub(trimmed, -2)
   assert_true(st_term == "\27\\", "Payload does not end with ST terminator \\x1b\\")
 
-  -- Render payload to test cache
-  renderer.render("auto", payload, test_cache, target_sample, true)
+  -- Save payload to test cache and verify overlay in headless mode
+  renderer.save_cache_file(test_cache, payload)
   assert_true(vim.fn.getfsize(test_cache) == #payload, "Cache file size mismatch")
+  renderer.render_interactive_overlay(ipc, live_sock, target_sample, payload, true)
 
   log("Test 4 PASSED: Successfully received and validated 3D Sixel stream from daemon.")
+
 
   --------------------------------------------------------------------------------
   -- Test 5: Command Dispatch & open() API

@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/spatial_daemon.dir/link.d CMakeFiles/spatial_daemon.dir/src/main.c.o CMakeFiles/spatial_daemon.dir/src/parser.c.o CMakeFiles/spatial_daemon.dir/src/graph.c.o CMakeFiles/spatial_daemon.dir/src/render.c.o -o spatial_daemon  -ltree-sitter -lsixel libtree_sitter_c_grammar.a -lm

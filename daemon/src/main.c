@@ -52,13 +52,53 @@ static void handle_client_request(int client_fd, int epoll_fd) {
             buf[--bytes_read] = '\0';
         }
 
-        printf("[spatial_daemon] Received request for file: %s\n", buf);
+        int req_width = DEFAULT_VIEW_WIDTH;
+        int req_height = DEFAULT_VIEW_HEIGHT;
+        float req_yaw = 0.0f;
+        float req_pitch = 0.0f;
+        float req_zoom = 450.0f;
+        bool req_braille = false;
+        char file_path[BUFFER_SIZE] = {0};
+
+        if (strncmp(buf, "REQ ", 4) == 0) {
+            /* Format: REQ W=800 H=600 YAW=0.0 PITCH=0.0 ZOOM=450 [BRAILLE=1] PATH=/path/to/file */
+            char *p = buf + 4;
+            char *token = strtok(p, " ");
+            while (token) {
+                if (strncmp(token, "W=", 2) == 0) {
+                    req_width = atoi(token + 2);
+                } else if (strncmp(token, "H=", 2) == 0) {
+                    req_height = atoi(token + 2);
+                } else if (strncmp(token, "YAW=", 4) == 0) {
+                    req_yaw = (float)atof(token + 4);
+                } else if (strncmp(token, "PITCH=", 6) == 0) {
+                    req_pitch = (float)atof(token + 6);
+                } else if (strncmp(token, "ZOOM=", 5) == 0) {
+                    req_zoom = (float)atof(token + 5);
+                } else if (strncmp(token, "BRAILLE=", 8) == 0) {
+                    req_braille = (atoi(token + 8) == 1);
+                } else if (strncmp(token, "PATH=", 5) == 0) {
+                    strncpy(file_path, token + 5, sizeof(file_path) - 1);
+                }
+                token = strtok(NULL, " ");
+            }
+        } else {
+            /* Backward compatibility: payload is raw file path */
+            strncpy(file_path, buf, sizeof(file_path) - 1);
+        }
+
+        if (req_width <= 0 || req_width > 3840) req_width = DEFAULT_VIEW_WIDTH;
+        if (req_height <= 0 || req_height > 2160) req_height = DEFAULT_VIEW_HEIGHT;
+        if (req_zoom <= 10.0f) req_zoom = 450.0f;
+
+        printf("[spatial_daemon] Processing request: target='%s', viewport=%dx%d, yaw=%.2f, pitch=%.2f, zoom=%.1f\n",
+               file_path, req_width, req_height, req_yaw, req_pitch, req_zoom);
 
         /* Phase 2: Parse source file and build call graph */
         Graph graph;
         graph_init(&graph);
-        if (parse_source_file(buf, &graph) == 0) {
-            printf("[spatial_daemon] Successfully parsed '%s': %d nodes\n", buf, graph.node_count);
+        if (file_path[0] != '\0' && parse_source_file(file_path, &graph) == 0) {
+            printf("[spatial_daemon] Successfully parsed '%s': %d nodes\n", file_path, graph.node_count);
             graph_print_summary(&graph);
 
             /* Phase 3: 3D Physics Engine (Fruchterman-Reingold) */
@@ -66,15 +106,34 @@ static void handle_client_request(int client_fd, int epoll_fd) {
             printf("[spatial_daemon] 3D physics simulation complete (150 iterations)\n");
             graph_print_summary(&graph);
         } else {
-            fprintf(stderr, "[spatial_daemon] Warning: parse_source_file failed for '%s'\n", buf);
+            fprintf(stderr, "[spatial_daemon] Warning: parse_source_file failed or empty for '%s'\n", file_path);
         }
 
-        /* Phase 4 & 5: Render and stream Sixel payload to client */
-        printf("[spatial_daemon] Rendering and streaming SIXEL payload to client...\n");
-        render_graph_to_sixel(&graph, client_fd);
-        printf("[spatial_daemon] SIXEL stream complete.\n");
+        /* Version 2 High-Fidelity Rendering Pipeline */
+        RasterContext raster_ctx;
+        if (raster_init(&raster_ctx, req_width, req_height) == 0) {
+            Camera cam;
+            camera_init(&cam, req_width, req_height);
+            camera_set_orbit(&cam, req_yaw, req_pitch, req_zoom);
+
+            render_graph_v2(&graph, &cam, &raster_ctx);
+
+            if (req_braille) {
+                printf("[spatial_daemon] Streaming UNICODE BRAILLE fallback payload to client...\n");
+                render_braille_stream(&raster_ctx, client_fd);
+            } else {
+                printf("[spatial_daemon] Streaming SIXEL payload to client...\n");
+                render_sixel_stream(&raster_ctx, client_fd);
+            }
+            printf("[spatial_daemon] Stream complete.\n");
+
+            raster_free(&raster_ctx);
+        } else {
+            fprintf(stderr, "[spatial_daemon] Error: raster_init failed for %dx%d\n", req_width, req_height);
+        }
 
         graph_free(&graph);
+
     } else if (bytes_read == 0) {
         /* Client closed connection without payload */
     } else {

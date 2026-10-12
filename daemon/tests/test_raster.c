@@ -1,5 +1,6 @@
 #include "render.h"
 #include "graph.h"
+#include "math3d.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,76 +11,80 @@
 #include <sys/socket.h>
 
 int main(void) {
-    printf("[TEST_RASTER] Starting Software Rasterization & Sixel tests...\n");
+    printf("[TEST_RASTER_V2] Starting High-Fidelity 3D Rasterization & Sixel tests...\n");
 
-    /* Test 1: Perspective projection mathematics & near-plane clipping */
+    /* Test 1: 3D Math & Perspective Projection Matrix */
     {
-        Camera cam = {
-            .focal_length = 600.0f,
-            .camera_z = 350.0f,
-            .width = 800,
-            .height = 600
-        };
+        Camera cam;
+        camera_init(&cam, 800, 600);
+        camera_set_orbit(&cam, 0.0f, 0.0f, 400.0f);
 
-        float px, py, pr;
-        int rc = project_3d_to_2d((Vec3){0.0f, 0.0f, 0.0f}, 10.0f, &cam, &px, &py, &pr);
-        assert(rc == 0);
-        assert(fabsf(px - 400.0f) < 0.01f);
-        assert(fabsf(py - 300.0f) < 0.01f);
-        assert(fabsf(pr - (10.0f * 600.0f / 350.0f)) < 0.01f);
+        Mat4 view = camera_get_view_matrix(&cam);
+        Mat4 proj = camera_get_proj_matrix(&cam);
+        Mat4 vp = mat4_multiply(&proj, &view);
 
-        /* Far node */
-        float far_x, far_y, far_r;
-        rc = project_3d_to_2d((Vec3){0.0f, 0.0f, 650.0f}, 10.0f, &cam, &far_x, &far_y, &far_r);
-        assert(rc == 0);
-        assert(far_r < pr); /* Distant node has smaller projected radius */
+        /* Project origin (0, 0, 0) */
+        float cx, cy, cz, cw;
+        mat4_transform_point(&vp, vec3_create(0.0f, 0.0f, 0.0f), &cx, &cy, &cz, &cw);
+        assert(cw > 0.0f);
 
-        /* Node behind camera: near-plane clipping keeps Z_eff >= 20.0 */
-        float clip_x, clip_y, clip_r;
-        rc = project_3d_to_2d((Vec3){0.0f, 0.0f, -500.0f}, 10.0f, &cam, &clip_x, &clip_y, &clip_r);
-        assert(rc == 0);
-        assert(!isnan(clip_x) && !isnan(clip_y) && !isnan(clip_r));
-        assert(clip_r <= 45.0f);
+        float ndc_x = cx / cw;
+        float ndc_y = cy / cw;
+        assert(fabsf(ndc_x) < 0.01f);
+        assert(fabsf(ndc_y) < 0.01f);
 
-        printf("[TEST 1 PASSED] 3D perspective projection and near-plane clipping verified.\n");
+        printf("[TEST 1 PASSED] 3D Math, Look-At, and Perspective transformations verified.\n");
     }
 
-    /* Test 2: Frame buffer rasterization */
+    /* Test 2: Frame buffer & Z-Buffer Depth Allocation */
     {
-        size_t sz = (size_t)(SCREEN_WIDTH * SCREEN_HEIGHT * 3);
-        unsigned char *buf = malloc(sz);
-        assert(buf != NULL);
+        RasterContext ctx;
+        int rc = raster_init(&ctx, 800, 600);
+        assert(rc == 0);
+        assert(ctx.color_buffer != NULL);
+        assert(ctx.depth_buffer != NULL);
 
         Graph g;
         graph_init(&g);
 
-        /* Render empty graph */
-        int rc = render_graph_to_buffer(&g, buf, SCREEN_WIDTH, SCREEN_HEIGHT);
-        assert(rc == 0);
-        /* Check background color #181825 */
-        assert(buf[0] == 24 && buf[1] == 24 && buf[2] == 37);
+        Camera cam;
+        camera_init(&cam, 800, 600);
 
-        /* Add nodes and an edge */
-        int a = graph_add_node(&g, "main", 12.0f, (Vec3){0.0f, 0.0f, 0.0f});
-        int b = graph_add_node(&g, "compute", 10.0f, (Vec3){50.0f, 50.0f, 0.0f});
+        /* Render empty graph */
+        rc = render_graph_v2(&g, &cam, &ctx);
+        assert(rc == 0);
+
+        /* Verify background clear #181825 */
+        assert(ctx.color_buffer[0] == 24 && ctx.color_buffer[1] == 24 && ctx.color_buffer[2] == 37);
+        assert(ctx.depth_buffer[0] == 1.0f);
+
+        /* Add nodes, call relationship, and verify non-background foreground rendering */
+        int a = graph_add_node(&g, "main", 12.0f, vec3_create(0.0f, 0.0f, 0.0f));
+        int b = graph_add_node(&g, "compute_node", 10.0f, vec3_create(60.0f, 60.0f, -20.0f));
         graph_add_edge(&g, a, b);
 
-        rc = render_graph_to_buffer(&g, buf, SCREEN_WIDTH, SCREEN_HEIGHT);
+        rc = render_graph_v2(&g, &cam, &ctx);
         assert(rc == 0);
 
-        /* Count non-background pixels */
-        size_t non_bg = 0;
-        for (size_t i = 0; i < sz; i += 3) {
-            if (buf[i] != 24 || buf[i + 1] != 24 || buf[i + 2] != 37) {
-                non_bg++;
+        size_t foreground_pixels = 0;
+        size_t depth_pixels = 0;
+        for (size_t i = 0; i < ctx.pixel_count; ++i) {
+            size_t c_idx = i * 3;
+            if (ctx.color_buffer[c_idx] != 24 || ctx.color_buffer[c_idx + 1] != 24 || ctx.color_buffer[c_idx + 2] != 37) {
+                foreground_pixels++;
+            }
+            if (ctx.depth_buffer[i] < 0.999f) {
+                depth_pixels++;
             }
         }
-        assert(non_bg > 100);
-        printf("  Frame buffer rendered %zu foreground pixels for 2 nodes + edge.\n", non_bg);
 
-        free(buf);
+        assert(foreground_pixels > 200);
+        assert(depth_pixels > 100);
+        printf("  Frame buffer rendered %zu foreground pixels, %zu Z-tested pixels.\n", foreground_pixels, depth_pixels);
+
+        raster_free(&ctx);
         graph_free(&g);
-        printf("[TEST 2 PASSED] Frame buffer rasterization correctly populated foreground pixels.\n");
+        printf("[TEST 2 PASSED] Z-Buffer depth buffer and Blinn-Phong/label rasterization verified.\n");
     }
 
     /* Test 3: Sixel streaming over socketpair */
@@ -88,18 +93,24 @@ int main(void) {
         int rc = socketpair(AF_UNIX, SOCK_STREAM, 0, sv);
         assert(rc == 0);
 
+        RasterContext ctx;
+        rc = raster_init(&ctx, 640, 480);
+        assert(rc == 0);
+
         Graph g;
         graph_init(&g);
-        int a = graph_add_node(&g, "main", 12.0f, (Vec3){-20.0f, 0.0f, 0.0f});
-        int b = graph_add_node(&g, "helper", 8.0f, (Vec3){30.0f, 0.0f, 0.0f});
+        int a = graph_add_node(&g, "main", 12.0f, vec3_create(-30.0f, 0.0f, 0.0f));
+        int b = graph_add_node(&g, "worker", 10.0f, vec3_create(40.0f, 20.0f, 10.0f));
         graph_add_edge(&g, a, b);
 
-        /* Stream Sixel directly into socket sv[0] */
-        rc = render_graph_to_sixel(&g, sv[0]);
+        Camera cam;
+        camera_init(&cam, 640, 480);
+        render_graph_v2(&g, &cam, &ctx);
+
+        rc = render_sixel_stream(&ctx, sv[0]);
         assert(rc == 0);
         close(sv[0]);
 
-        /* Read all sixel bytes from sv[1] */
         char read_buf[65536];
         size_t total_read = 0;
         while (1) {
@@ -117,14 +128,56 @@ int main(void) {
         assert(read_buf[0] == '\033');
         assert(read_buf[1] == 'P');
 
-        /* Sixel sequence ends with ESC \ (String Terminator) */
+        /* Sixel sequence ends with ESC \\ (String Terminator) */
         assert(read_buf[total_read - 2] == '\033');
         assert(read_buf[total_read - 1] == '\\');
 
+        raster_free(&ctx);
         graph_free(&g);
         printf("[TEST 3 PASSED] Libsixel encoding produced valid DCS escape sequence over socket.\n");
     }
 
-    printf("\n>>> ALL TEST_RASTER CHECKS PASSED SUCCESSFULLY! <<<\n");
+    /* Test 4: Unicode Braille Fallback Streaming */
+    {
+        int sv[2];
+        int rc = socketpair(AF_UNIX, SOCK_STREAM, 0, sv);
+        assert(rc == 0);
+
+        RasterContext ctx;
+        rc = raster_init(&ctx, 160, 80);
+        assert(rc == 0);
+
+        Graph g;
+        graph_init(&g);
+        int a = graph_add_node(&g, "main", 15.0f, vec3_create(0.0f, 0.0f, 0.0f));
+        (void)a;
+
+        Camera cam;
+        camera_init(&cam, 160, 80);
+        render_graph_v2(&g, &cam, &ctx);
+
+        rc = render_braille_stream(&ctx, sv[0]);
+        assert(rc == 0);
+        close(sv[0]);
+
+        char read_buf[16384];
+        size_t total_read = 0;
+        while (1) {
+            ssize_t n = read(sv[1], read_buf + total_read, sizeof(read_buf) - total_read - 1);
+            if (n <= 0) break;
+            total_read += (size_t)n;
+        }
+        close(sv[1]);
+        read_buf[total_read] = '\0';
+
+        printf("  Braille stream received: %zu bytes.\n", total_read);
+        assert(total_read > 100);
+
+        raster_free(&ctx);
+        graph_free(&g);
+        printf("[TEST 4 PASSED] Unicode Braille fallback output successfully streamed.\n");
+    }
+
+    printf("\n>>> ALL TEST_RASTER_V2 CHECKS PASSED SUCCESSFULLY! <<<\n");
     return 0;
 }

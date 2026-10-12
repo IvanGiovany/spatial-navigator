@@ -1,12 +1,13 @@
 local ipc = require("spatial_nav.ipc")
 local renderer = require("spatial_nav.renderer")
+local discovery = require("spatial_nav.discovery")
 
 local M = {}
 
 M.defaults = {
   socket_path = "/tmp/spatial_nav.sock",
   sixel_cache_path = "/tmp/spatial_nav_render.sixel",
-  render_strategy = "auto", -- "auto" | "tty_overlay" | "wezterm" | "suspend"
+  render_strategy = "auto", -- "auto" | "tty_overlay"
 }
 
 M.options = vim.deepcopy(M.defaults)
@@ -34,23 +35,30 @@ function M.open(filepath_override, is_headless)
     return nil
   end
 
-  -- Expand to normalized absolute path
   filepath = vim.fn.fnamemodify(filepath, ":p")
 
-  -- Check if file is readable
   if vim.fn.filereadable(filepath) ~= 1 then
     vim.notify(string.format("[SpatialNav] File not found or unreadable: '%s'", filepath), vim.log.levels.WARN)
   end
 
   local filename = vim.fs.basename(filepath)
-  vim.notify(string.format("[SpatialNav] Generating 3D spatial map for %s...", filename), vim.log.levels.INFO)
+  vim.notify(string.format("[SpatialNav] Generating Version 2 3D spatial map for %s...", filename), vim.log.levels.INFO)
+
+  -- Probe terminal geometry and Sixel capability
+  local term_info = discovery.probe_terminal()
 
   local chunks = {}
 
-  -- Start async IPC streaming from the C daemon
-  local req_handle = ipc.request_graph(M.options.socket_path, filepath, {
+  local req_handle = ipc.request_graph(M.options.socket_path, {
+    filepath = filepath,
+    width = term_info.width,
+    height = term_info.height,
+    yaw = 0.0,
+    pitch = 0.0,
+    zoom = 450.0,
+    braille = not term_info.has_sixel,
+  }, {
     on_connect = function()
-      -- Daemon accepted connection
     end,
     on_chunk = function(chunk)
       table.insert(chunks, chunk)
@@ -62,12 +70,15 @@ function M.open(filepath_override, is_headless)
         return
       end
 
-      -- Route directly to host terminal bypassing libvterm
-      renderer.render(
-        M.options.render_strategy,
-        payload,
-        M.options.sixel_cache_path,
+      -- Cache payload to disk
+      renderer.save_cache_file(M.options.sixel_cache_path, payload)
+
+      -- Enter interactive navigation overlay
+      renderer.render_interactive_overlay(
+        ipc,
+        M.options.socket_path,
         filepath,
+        payload,
         is_headless
       )
     end,

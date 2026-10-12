@@ -2,12 +2,7 @@
 #define SPATIAL_GRAPH_H
 
 #include <stddef.h>
-
-typedef struct {
-    float x;
-    float y;
-    float z;
-} Vec3;
+#include "math3d.h"
 
 typedef struct {
     int id;
