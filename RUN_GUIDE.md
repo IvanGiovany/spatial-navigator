@@ -66,17 +66,19 @@ Once Neovim is open showing the C code:
    ```vim
    :SpatialNav
    ```
-3. A centered window will pop up showing:
-   - Your functions rendered as **3D shaded spheres** (Gold for `main`, Cyan for intermediate callers, and Mint green for leaf functions).
+3. The display will seamlessly switch to the terminal's full 3D canvas showing:
+   - Your functions rendered as **3D shaded spheres** (Gold for `main`, Cyan for callers, and Mint green for leaf functions).
    - Lines connecting functions that call each other.
+   - An info bar at the bottom with target file details.
+   - The Sixel image is also saved to `/tmp/spatial_nav_render.sixel` if you want to inspect or share it.
 
 ---
 
-## Step 5: How to Close the 3D Map
+## Step 5: How to Return to Your Code
 
 When you are done exploring the 3D map:
-- Simply press **`q`** or **`Esc`** on your keyboard.
-- The floating window will close immediately, returning you to your editor.
+- Simply press **`q`**, **`Esc`**, or **`Enter`** on your keyboard.
+- The terminal will instantly return you to your exact Neovim editor buffer.
 
 ---
 

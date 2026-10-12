@@ -1,13 +1,12 @@
-local ui = require("spatial_nav.ui")
 local ipc = require("spatial_nav.ipc")
+local renderer = require("spatial_nav.renderer")
 
 local M = {}
 
 M.defaults = {
   socket_path = "/tmp/spatial_nav.sock",
-  width_ratio = 0.85,
-  height_ratio = 0.85,
-  border = "rounded",
+  sixel_cache_path = "/tmp/spatial_nav_render.sixel",
+  render_strategy = "auto", -- "auto" | "tty_overlay" | "wezterm" | "suspend"
 }
 
 M.options = vim.deepcopy(M.defaults)
@@ -20,10 +19,11 @@ function M.setup(opts)
   end
 end
 
---- Open Spatial Navigator floating window for the specified file or current buffer
+--- Open Spatial Navigator and render 3D call graph directly to the host terminal
 --- @param filepath_override string|nil Optional target file path
---- @return table|nil win_info Handle for window and terminal channel
-function M.open(filepath_override)
+--- @param is_headless boolean|nil If true, non-interactive mode for testing
+--- @return table|nil handle Request handle
+function M.open(filepath_override, is_headless)
   local filepath = filepath_override
   if not filepath or filepath == "" then
     filepath = vim.api.nvim_buf_get_name(0)
@@ -42,44 +42,42 @@ function M.open(filepath_override)
     vim.notify(string.format("[SpatialNav] File not found or unreadable: '%s'", filepath), vim.log.levels.WARN)
   end
 
-  -- Open centered floating terminal window
-  local win_info = ui.create_window(M.options)
-  if not win_info then
-    return nil
-  end
+  local filename = vim.fs.basename(filepath)
+  vim.notify(string.format("[SpatialNav] Generating 3D spatial map for %s...", filename), vim.log.levels.INFO)
 
-  -- Display initial progress status in terminal window
-  ui.append_text(win_info.chan_id, "\x1b[?25l\x1b[2J\x1b[H") -- Hide cursor, clear screen, home
-  ui.append_text(win_info.chan_id, string.format("== Spatial Codebase Navigator ==\r\nTarget: %s\r\nConnecting to daemon at %s...\r\n", filepath, M.options.socket_path))
+  local chunks = {}
 
   -- Start async IPC streaming from the C daemon
-  local req_handle
-  req_handle = ipc.request_graph(M.options.socket_path, filepath, {
+  local req_handle = ipc.request_graph(M.options.socket_path, filepath, {
     on_connect = function()
-      ui.append_text(win_info.chan_id, "Connected to daemon. Parsing AST and running 3D physics...\r\n")
+      -- Daemon accepted connection
     end,
     on_chunk = function(chunk)
-      ui.append_raw(win_info.chan_id, chunk)
+      table.insert(chunks, chunk)
     end,
     on_complete = function()
-      -- Daemon completed streaming and closed the socket connection
+      local payload = table.concat(chunks)
+      if #payload == 0 then
+        vim.notify("[SpatialNav] Received empty response from daemon.", vim.log.levels.WARN)
+        return
+      end
+
+      -- Route directly to host terminal bypassing libvterm
+      renderer.render(
+        M.options.render_strategy,
+        payload,
+        M.options.sixel_cache_path,
+        filepath,
+        is_headless
+      )
     end,
     on_error = function(err)
-      local msg = string.format("\r\n[SpatialNav] IPC failed: %s\r\nEnsure spatial_daemon is running at %s\r\n", tostring(err), M.options.socket_path)
-      ui.append_text(win_info.chan_id, msg)
-      vim.notify(string.format("[SpatialNav] Error connecting to daemon: %s", tostring(err)), vim.log.levels.ERROR)
+      local msg = string.format("[SpatialNav] Socket IPC failed: %s\nEnsure spatial_daemon is running at %s", tostring(err), M.options.socket_path)
+      vim.notify(msg, vim.log.levels.ERROR)
     end,
   })
 
-  -- Attach abort handler when the floating window is dismissed
-  ui.set_close_callback(win_info, function()
-    if req_handle then
-      ipc.abort(req_handle)
-      req_handle = nil
-    end
-  end)
-
-  return win_info
+  return req_handle
 end
 
 return M

@@ -11,7 +11,9 @@ flowchart TD
     subgraph Neovim ["Neovim (Frontend)"]
         CMD[":SpatialNav Command"] --> IPC_CLIENT["Async IPC Client (vim.uv pipe)"]
         IPC_CLIENT -->|Filepath payload| SOCK["Unix Domain Socket (/tmp/spatial_nav.sock)"]
-        TERM_WIN["Floating Terminal (nvim_open_term)"] <---|SIXEL DCS Stream| IPC_CLIENT
+        IPC_CLIENT -->|Sixel Payload| ROUTER["Sixel Router (renderer.lua)"]
+        ROUTER -->|Alternate Screen Overlay| HOST_TERM["Host Terminal Canvas (/dev/tty)"]
+        ROUTER -.->|WezTerm CLI| WEZ_PANE["WezTerm Split Pane"]
     end
 
     subgraph Daemon ["C11 Backend Daemon (spatial_daemon)"]
@@ -35,7 +37,7 @@ flowchart TD
 - **Custom 3D Physics Simulation**: $O(N^2)$ Fruchterman-Reingold force-directed layout in 3D Euclidean space with Coulomb repulsion, Hooke spring attraction, cooling schedules, and centroid normalization.
 - **Software Rasterizer**: Pure C 3D-to-2D perspective camera projection ($F=600$, $Z_{\text{cam}}=350$) with near-plane clipping, Painter's algorithm depth sorting, directional light-shaded spherical discs, and integer Bresenham edge lines.
 - **DEC SIXEL IPC Streaming**: In-memory frame quantization into 256-color DEC palettes via `libsixel`, streamed asynchronously across non-blocking Unix Domain Sockets with `poll(POLLOUT)` flow control.
-- **Native Neovim 0.10+ Plugin**: 100% native Lua using `vim.uv` and `vim.api` without Python, Node.js, or external runtime dependencies. Renders directly into a floating terminal window (`vim.api.nvim_open_term`).
+- **Direct Terminal Rendering**: Bypasses Neovim's internal `libvterm` by routing Sixel graphics directly to the host terminal canvas via `/dev/tty` alternate-screen modal overlay or native WezTerm split pane. Zero external runtime dependencies.
 
 ---
 

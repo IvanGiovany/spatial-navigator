@@ -38,40 +38,33 @@ assert_true(spatial_nav ~= nil, "Failed to require spatial_nav")
 
 spatial_nav.setup({
   socket_path = "/tmp/spatial_nav.sock",
-  width_ratio = 0.8,
-  height_ratio = 0.7,
+  sixel_cache_path = "/tmp/spatial_nav_render_test.sixel",
+  render_strategy = "auto",
 })
 
 assert_true(spatial_nav.options.socket_path == "/tmp/spatial_nav.sock", "socket_path not set")
-assert_true(spatial_nav.options.width_ratio == 0.8, "width_ratio not set")
-assert_true(spatial_nav.options.height_ratio == 0.7, "height_ratio not set")
+assert_true(spatial_nav.options.sixel_cache_path == "/tmp/spatial_nav_render_test.sixel", "sixel_cache_path not set")
+assert_true(spatial_nav.options.render_strategy == "auto", "render_strategy not set")
 log("Test 1 PASSED: Module loading & options setup verified.")
 
 --------------------------------------------------------------------------------
--- Test 2: UI Floating Window & Terminal Channel Lifecycle
+-- Test 2: Direct Host Terminal Renderer (bypassing libvterm)
 --------------------------------------------------------------------------------
-log("Running Test 2: Floating window and terminal lifecycle...")
-local ui = require("spatial_nav.ui")
-local win_info = ui.create_window({ width_ratio = 0.8, height_ratio = 0.7, border = "rounded" })
+log("Running Test 2: Renderer module and /dev/tty alternate-screen overlay...")
+local renderer = require("spatial_nav.renderer")
+assert_true(renderer ~= nil, "Failed to require renderer")
 
-assert_true(win_info ~= nil, "create_window returned nil")
-assert_true(win_info.buf and vim.api.nvim_buf_is_valid(win_info.buf), "Buffer is not valid")
-assert_true(win_info.win and vim.api.nvim_win_is_valid(win_info.win), "Window is not valid")
-assert_true(win_info.chan_id and win_info.chan_id > 0, "Terminal channel ID invalid")
+-- Test cache file saving
+local dummy_sixel = "\27Pq\"1;1;100;100#0;2;0;0;0#0-!100~-\27\\"
+local test_cache = "/tmp/spatial_nav_render_test.sixel"
+local saved = renderer.save_cache_file(test_cache, dummy_sixel)
+assert_true(saved == true, "Failed to save cache file")
+assert_true(vim.fn.filereadable(test_cache) == 1, "Cache file not readable on disk")
 
-local closed_called = false
-ui.set_close_callback(win_info, function()
-  closed_called = true
-end)
-
--- Append text into terminal channel safely
-ui.append_text(win_info.chan_id, "Hello from SpatialNav Test\r\n")
-ui.append_raw(win_info.chan_id, "\x1b[32mColored Output\x1b[0m\r\n")
-
--- Close window
-vim.api.nvim_win_close(win_info.win, true)
-assert_true(closed_called == true, "Close callback was not called")
-log("Test 2 PASSED: UI window, terminal channel, and cleanup verified.")
+-- Test /dev/tty overlay in headless mode (is_headless = true avoids blocking on getchar)
+local rendered = renderer.render("auto", dummy_sixel, test_cache, "/dummy/sample.c", true)
+assert_true(rendered == true, "render() failed in headless mode")
+log("Test 2 PASSED: Direct host terminal renderer verified.")
 
 --------------------------------------------------------------------------------
 -- Test 3: Resilient IPC Error Handling (Offline Socket)
@@ -105,7 +98,28 @@ log("Test 3 PASSED: Offline socket error handled gracefully.")
 -- Test 4: End-to-End Live Socket Streaming (if daemon socket is active)
 --------------------------------------------------------------------------------
 local live_sock = "/tmp/spatial_nav.sock"
-local is_live = vim.fn.filereadable(live_sock) == 1 or vim.uv.fs_stat(live_sock) ~= nil
+local function is_socket_live(sock_path)
+  local stat = vim.uv.fs_stat(sock_path)
+  if not stat or stat.type ~= "socket" then
+    return false
+  end
+  local pipe = vim.uv.new_pipe(false)
+  local ok = false
+  local done = false
+  pipe:connect(sock_path, function(err)
+    if not err then
+      ok = true
+    end
+    pipe:close()
+    done = true
+  end)
+  vim.wait(200, function()
+    return done
+  end, 10)
+  return ok
+end
+
+local is_live = is_socket_live(live_sock)
 
 if is_live then
   log("Running Test 4: Live daemon socket end-to-end streaming...")
@@ -151,6 +165,10 @@ if is_live then
   local st_term = string.sub(trimmed, -2)
   assert_true(st_term == "\27\\", "Payload does not end with ST terminator \\x1b\\")
 
+  -- Render payload to test cache
+  renderer.render("auto", payload, test_cache, target_sample, true)
+  assert_true(vim.fn.getfsize(test_cache) == #payload, "Cache file size mismatch")
+
   log("Test 4 PASSED: Successfully received and validated 3D Sixel stream from daemon.")
 
   --------------------------------------------------------------------------------
@@ -162,17 +180,15 @@ if is_live then
   local cmds = vim.api.nvim_get_commands({})
   assert_true(cmds["SpatialNav"] ~= nil, ":SpatialNav command was not registered!")
 
-  local win_info_cmd = spatial_nav.open(target_sample)
-  assert_true(win_info_cmd ~= nil, "spatial_nav.open returned nil")
-  assert_true(vim.api.nvim_win_is_valid(win_info_cmd.win), "Window from open() is not valid")
+  -- Execute open in non-interactive headless mode
+  local req_h = spatial_nav.open(target_sample, true)
+  assert_true(req_h ~= nil, "spatial_nav.open returned nil handle")
 
   -- Wait briefly for connection and streaming
   vim.wait(1500, function()
     return false
   end, 50)
 
-  -- Cleanly close window
-  vim.api.nvim_win_close(win_info_cmd.win, true)
   log("Test 5 PASSED: :SpatialNav command registration and open() verified.")
 else
   log("Test 4 & 5 SKIPPED: /tmp/spatial_nav.sock is not running (will be tested in test_phase6.sh).")
