@@ -28,13 +28,46 @@ function M.save_cache_file(sixel_path, payload)
   return true
 end
 
---- Render Sixel directly to the host terminal using the alternate screen buffer on /dev/tty
---- This completely bypasses Neovim's internal libvterm which would otherwise strip DCS sequences.
+--- Dynamically resolve the controlling pseudo-terminal device path (e.g., /dev/pts/0 in WSL)
+--- @return string|nil tty_path
+function M.get_tty_device()
+  -- Step 1: Run `tty 2>/dev/null` to discover the active PTS device
+  local p = io.popen("tty 2>/dev/null")
+  if p then
+    local out = p:read("*a")
+    p:close()
+    if out then
+      local trimmed = vim.trim(out)
+      if trimmed ~= "" and trimmed ~= "not a tty" and vim.startswith(trimmed, "/dev/") then
+        local f = io.open(trimmed, "wb")
+        if f then
+          f:close()
+          return trimmed
+        end
+      end
+    end
+  end
+
+  -- Step 2: Try standard TTY device fallbacks
+  for _, candidate in ipairs({ "/dev/tty", "/dev/pts/0", "/dev/stdout" }) do
+    local f = io.open(candidate, "wb")
+    if f then
+      f:close()
+      return candidate
+    end
+  end
+
+  return nil
+end
+
+--- Render Sixel directly to the host terminal using the alternate screen buffer
+--- Dynamically discovers the controlling TTY (/dev/pts/X or /dev/tty) to bypass libvterm.
 --- @param payload string Raw Sixel escape stream (\x1bP... \x1b\)
 --- @param filepath string Source file path for status footer
 --- @param is_headless boolean|nil If true, do not block on getchar()
+--- @param sixel_path string|nil Path to cached Sixel file for fallback
 --- @return boolean success
-function M.render_tty_overlay(payload, filepath, is_headless)
+function M.render_tty_overlay(payload, filepath, is_headless, sixel_path)
   local has_ui = (#vim.api.nvim_list_uis() > 0) and not is_headless
   if not has_ui then
     -- Headless mode or test execution without attached UI:
@@ -42,9 +75,21 @@ function M.render_tty_overlay(payload, filepath, is_headless)
     return true
   end
 
-  local tty, err = io.open("/dev/tty", "wb")
+  local tty_path = M.get_tty_device()
+  if not tty_path then
+    vim.notify("[SpatialNav] No accessible TTY device found. Falling back to suspend mode.", vim.log.levels.WARN)
+    if sixel_path then
+      return M.render_suspend(sixel_path)
+    end
+    return false
+  end
+
+  local tty, err = io.open(tty_path, "wb")
   if not tty then
-    vim.notify(string.format("[SpatialNav] Cannot open /dev/tty: %s. Falling back to suspend mode.", tostring(err)), vim.log.levels.WARN)
+    vim.notify(string.format("[SpatialNav] Cannot open %s: %s. Falling back to suspend mode.", tty_path, tostring(err)), vim.log.levels.WARN)
+    if sixel_path then
+      return M.render_suspend(sixel_path)
+    end
     return false
   end
 
@@ -63,8 +108,9 @@ function M.render_tty_overlay(payload, filepath, is_headless)
 
   -- Render an intuitive footer prompt below the Sixel graphic
   local footer = string.format(
-    "\r\n\27[1;30;46m Spatial Codebase Navigator \27[0m \27[90m| Target: %s | Press [q], [Esc], or [Enter] to return\27[0m\r\n",
-    filename
+    "\r\n\27[1;30;46m Spatial Codebase Navigator \27[0m \27[90m| Target: %s (%s) | Press [q], [Esc], or [Enter] to return\27[0m\r\n",
+    filename,
+    tty_path
   )
   tty:write(wrap_tmux(footer))
   tty:flush()
@@ -142,7 +188,7 @@ function M.render(strategy, payload, sixel_path, filepath, is_headless)
       return true
     end
     -- Fallback to tty_overlay if wezterm failed
-    return M.render_tty_overlay(payload, filepath, is_headless)
+    return M.render_tty_overlay(payload, filepath, is_headless, sixel_path)
   elseif strategy == "suspend" then
     return M.render_suspend(sixel_path)
   elseif strategy == "auto" then
@@ -153,10 +199,10 @@ function M.render(strategy, payload, sixel_path, filepath, is_headless)
       end
     end
     -- Default universal strategy
-    return M.render_tty_overlay(payload, filepath, is_headless)
+    return M.render_tty_overlay(payload, filepath, is_headless, sixel_path)
   else
     -- Default: tty_overlay
-    return M.render_tty_overlay(payload, filepath, is_headless)
+    return M.render_tty_overlay(payload, filepath, is_headless, sixel_path)
   end
 end
 
