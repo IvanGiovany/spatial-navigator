@@ -1,3 +1,5 @@
+/mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles/tree_sitter_c_grammar.dir
 /mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles/spatial_daemon.dir
+/mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles/test_parser.dir
 /mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles/edit_cache.dir
 /mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles/rebuild_cache.dir

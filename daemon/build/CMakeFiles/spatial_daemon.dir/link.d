@@ -8,6 +8,7 @@ spatial_daemon: \
   CMakeFiles/spatial_daemon.dir/src/render.c.o \
   /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libtree-sitter.so \
   /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libsixel.so \
+  libtree_sitter_c_grammar.a \
   /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libm.so \
   /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libm.so \
   /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libm.so \
@@ -52,6 +53,8 @@ CMakeFiles/spatial_daemon.dir/src/render.c.o:
 /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libtree-sitter.so:
 
 /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libsixel.so:
+
+libtree_sitter_c_grammar.a:
 
 /usr/lib/gcc/x86_64-linux-gnu/14/../../../x86_64-linux-gnu/libm.so:
 

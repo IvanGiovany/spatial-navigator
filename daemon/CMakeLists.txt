@@ -48,6 +48,24 @@ else()
     list(APPEND EXTRA_LIBS ${SIXEL_LIBRARY})
 endif()
 
+# Locate Tree-sitter C grammar parser source
+file(GLOB TREE_SITTER_C_SOURCES "/usr/src/tree-sitter/c/*/parser/src/parser.c")
+if (TREE_SITTER_C_SOURCES)
+    list(GET TREE_SITTER_C_SOURCES 0 TREE_SITTER_C_SRC)
+    get_filename_component(TREE_SITTER_C_DIR "${TREE_SITTER_C_SRC}" DIRECTORY)
+    add_library(tree_sitter_c_grammar STATIC ${TREE_SITTER_C_SRC})
+    target_include_directories(tree_sitter_c_grammar PUBLIC ${TREE_SITTER_C_DIR})
+    set_target_properties(tree_sitter_c_grammar PROPERTIES COMPILE_FLAGS "-w")
+    list(APPEND EXTRA_LIBS tree_sitter_c_grammar)
+else()
+    find_library(TREE_SITTER_C_LIB NAMES tree-sitter-c)
+    if (TREE_SITTER_C_LIB)
+        list(APPEND EXTRA_LIBS ${TREE_SITTER_C_LIB})
+    else()
+        message(FATAL_ERROR "Could not find tree-sitter C grammar source (/usr/src/tree-sitter/c/*/parser/src/parser.c) or library")
+    endif()
+endif()
+
 add_executable(spatial_daemon
     src/main.c
     src/parser.c
@@ -65,3 +83,21 @@ target_link_libraries(spatial_daemon PRIVATE
     Threads::Threads
     m
 )
+
+# Test executable for AST parser & graph
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_parser.c")
+    add_executable(test_parser
+        tests/test_parser.c
+        src/parser.c
+        src/graph.c
+    )
+    target_include_directories(test_parser PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${EXTRA_INCLUDES}
+    )
+    target_link_libraries(test_parser PRIVATE
+        ${EXTRA_LIBS}
+        Threads::Threads
+        m
+    )
+endif()

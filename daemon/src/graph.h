@@ -17,6 +17,7 @@ typedef struct {
     float radius;
     int *edges;
     int edge_count;
+    int edge_capacity;
 } Node;
 
 typedef struct {
@@ -27,6 +28,10 @@ typedef struct {
 
 void graph_init(Graph *graph);
 void graph_free(Graph *graph);
+int graph_add_node(Graph *graph, const char *name, float radius, Vec3 pos);
+int graph_find_node_by_name(const Graph *graph, const char *name);
+int graph_add_edge(Graph *graph, int from_id, int to_id);
+void graph_print_summary(const Graph *graph);
 void calculate_forces(Node *nodes, int count);
 
 #endif /* SPATIAL_GRAPH_H */

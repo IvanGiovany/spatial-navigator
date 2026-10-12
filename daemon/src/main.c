@@ -54,6 +54,17 @@ static void handle_client_request(int client_fd, int epoll_fd) {
 
         printf("[spatial_daemon] Received request for file: %s\n", buf);
 
+        /* Phase 2: Parse source file and build call graph */
+        Graph graph;
+        graph_init(&graph);
+        if (parse_source_file(buf, &graph) == 0) {
+            printf("[spatial_daemon] Successfully parsed '%s': %d nodes\n", buf, graph.node_count);
+            graph_print_summary(&graph);
+        } else {
+            fprintf(stderr, "[spatial_daemon] Warning: parse_source_file failed for '%s'\n", buf);
+        }
+        graph_free(&graph);
+
         char response[BUFFER_SIZE + 32];
         int resp_len = snprintf(response, sizeof(response), "ACK: %s\n", buf);
         if (resp_len > 0) {

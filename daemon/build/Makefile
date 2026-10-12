@@ -117,6 +117,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named tree_sitter_c_grammar
+
+# Build rule for target.
+tree_sitter_c_grammar: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tree_sitter_c_grammar
+.PHONY : tree_sitter_c_grammar
+
+# fast build rule for target.
+tree_sitter_c_grammar/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tree_sitter_c_grammar.dir/build.make CMakeFiles/tree_sitter_c_grammar.dir/build
+.PHONY : tree_sitter_c_grammar/fast
+
+#=============================================================================
 # Target rules for targets named spatial_daemon
 
 # Build rule for target.
@@ -129,12 +142,26 @@ spatial_daemon/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/build
 .PHONY : spatial_daemon/fast
 
+#=============================================================================
+# Target rules for targets named test_parser
+
+# Build rule for target.
+test_parser: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_parser
+.PHONY : test_parser
+
+# fast build rule for target.
+test_parser/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/build
+.PHONY : test_parser/fast
+
 src/graph.o: src/graph.c.o
 .PHONY : src/graph.o
 
 # target to build an object file
 src/graph.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.o
 .PHONY : src/graph.c.o
 
 src/graph.i: src/graph.c.i
@@ -143,6 +170,7 @@ src/graph.i: src/graph.c.i
 # target to preprocess a source file
 src/graph.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.i
 .PHONY : src/graph.c.i
 
 src/graph.s: src/graph.c.s
@@ -151,6 +179,7 @@ src/graph.s: src/graph.c.s
 # target to generate assembly for a file
 src/graph.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.s
 .PHONY : src/graph.c.s
 
 src/main.o: src/main.c.o
@@ -183,6 +212,7 @@ src/parser.o: src/parser.c.o
 # target to build an object file
 src/parser.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/parser.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/parser.c.o
 .PHONY : src/parser.c.o
 
 src/parser.i: src/parser.c.i
@@ -191,6 +221,7 @@ src/parser.i: src/parser.c.i
 # target to preprocess a source file
 src/parser.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/parser.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/parser.c.i
 .PHONY : src/parser.c.i
 
 src/parser.s: src/parser.c.s
@@ -199,6 +230,7 @@ src/parser.s: src/parser.c.s
 # target to generate assembly for a file
 src/parser.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/parser.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/parser.c.s
 .PHONY : src/parser.c.s
 
 src/render.o: src/render.c.o
@@ -225,6 +257,54 @@ src/render.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/render.c.s
 .PHONY : src/render.c.s
 
+tests/test_parser.o: tests/test_parser.c.o
+.PHONY : tests/test_parser.o
+
+# target to build an object file
+tests/test_parser.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/tests/test_parser.c.o
+.PHONY : tests/test_parser.c.o
+
+tests/test_parser.i: tests/test_parser.c.i
+.PHONY : tests/test_parser.i
+
+# target to preprocess a source file
+tests/test_parser.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/tests/test_parser.c.i
+.PHONY : tests/test_parser.c.i
+
+tests/test_parser.s: tests/test_parser.c.s
+.PHONY : tests/test_parser.s
+
+# target to generate assembly for a file
+tests/test_parser.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/tests/test_parser.c.s
+.PHONY : tests/test_parser.c.s
+
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.o: usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.o
+
+# target to build an object file
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tree_sitter_c_grammar.dir/build.make CMakeFiles/tree_sitter_c_grammar.dir/usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o
+
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.i: usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.i
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.i
+
+# target to preprocess a source file
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tree_sitter_c_grammar.dir/build.make CMakeFiles/tree_sitter_c_grammar.dir/usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.i
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.i
+
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.s: usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.s
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.s
+
+# target to generate assembly for a file
+usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tree_sitter_c_grammar.dir/build.make CMakeFiles/tree_sitter_c_grammar.dir/usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.s
+.PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -234,6 +314,8 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... spatial_daemon"
+	@echo "... test_parser"
+	@echo "... tree_sitter_c_grammar"
 	@echo "... src/graph.o"
 	@echo "... src/graph.i"
 	@echo "... src/graph.s"
@@ -246,6 +328,12 @@ help:
 	@echo "... src/render.o"
 	@echo "... src/render.i"
 	@echo "... src/render.s"
+	@echo "... tests/test_parser.o"
+	@echo "... tests/test_parser.i"
+	@echo "... tests/test_parser.s"
+	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.o"
+	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.i"
+	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.s"
 .PHONY : help
 
 

@@ -144,6 +144,7 @@ spatial_daemon: CMakeFiles/spatial_daemon.dir/src/graph.c.o
 spatial_daemon: CMakeFiles/spatial_daemon.dir/src/render.c.o
 spatial_daemon: CMakeFiles/spatial_daemon.dir/build.make
 spatial_daemon: CMakeFiles/spatial_daemon.dir/compiler_depend.ts
+spatial_daemon: libtree_sitter_c_grammar.a
 spatial_daemon: CMakeFiles/spatial_daemon.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C executable spatial_daemon"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/spatial_daemon.dir/link.txt --verbose=$(VERBOSE)

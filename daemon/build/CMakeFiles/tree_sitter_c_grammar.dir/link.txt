@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtree_sitter_c_grammar.a "CMakeFiles/tree_sitter_c_grammar.dir/usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o"
+/usr/bin/ranlib libtree_sitter_c_grammar.a

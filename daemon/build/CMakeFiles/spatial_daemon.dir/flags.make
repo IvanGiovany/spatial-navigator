@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = -I/mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/src -I/usr/include/sixel
+C_INCLUDES = -I/mnt/c/Users/Ivan/Documents/spatial-navigator/daemon/src -I/usr/include/sixel -I/usr/src/tree-sitter/c/0.21.3/parser/src
 
 C_FLAGS = -std=gnu11 -Wall -Wextra -Wpedantic
 

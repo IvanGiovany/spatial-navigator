@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/test_parser.dir/link.d CMakeFiles/test_parser.dir/tests/test_parser.c.o CMakeFiles/test_parser.dir/src/parser.c.o CMakeFiles/test_parser.dir/src/graph.c.o -o test_parser  -ltree-sitter -lsixel libtree_sitter_c_grammar.a -lm
