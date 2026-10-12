@@ -19,7 +19,8 @@ static int has_edge_to(const Node *from, int to_id) {
 
 int main(int argc, char **argv) {
     const char *sample_path = (argc > 1) ? argv[1] : "tests/sample_project.c";
-    printf("[TEST] Running test_parser with sample: %s\n", sample_path);
+    const char *main_c_path = (argc > 2) ? argv[2] : "src/main.c";
+    printf("[TEST] Running test_parser with sample: %s, main: %s\n", sample_path, main_c_path);
 
     /* Test 1: Nonexistent file returns error */
     {
@@ -112,10 +113,10 @@ int main(int argc, char **argv) {
     {
         Graph g;
         graph_init(&g);
-        int rc = parse_source_file("src/main.c", &g);
+        int rc = parse_source_file(main_c_path, &g);
         assert(rc == 0);
         assert(g.node_count >= 3); /* handle_signal, set_nonblocking, handle_client_request, main */
-        printf("[TEST 4] Parsed src/main.c successfully: %d nodes found.\n", g.node_count);
+        printf("[TEST 4] Parsed %s successfully: %d nodes found.\n", main_c_path, g.node_count);
         graph_print_summary(&g);
         graph_free(&g);
         printf("[TEST 4 PASSED] Real C file parsed without errors.\n");
