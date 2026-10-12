@@ -60,6 +60,11 @@ static void handle_client_request(int client_fd, int epoll_fd) {
         if (parse_source_file(buf, &graph) == 0) {
             printf("[spatial_daemon] Successfully parsed '%s': %d nodes\n", buf, graph.node_count);
             graph_print_summary(&graph);
+
+            /* Phase 3: 3D Physics Engine (Fruchterman-Reingold) */
+            calculate_forces(graph.nodes, graph.node_count);
+            printf("[spatial_daemon] 3D physics simulation complete (150 iterations)\n");
+            graph_print_summary(&graph);
         } else {
             fprintf(stderr, "[spatial_daemon] Warning: parse_source_file failed for '%s'\n", buf);
         }

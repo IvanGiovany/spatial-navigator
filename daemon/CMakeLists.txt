@@ -101,3 +101,19 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_parser.c")
         m
     )
 endif()
+
+# Test executable for 3D physics engine (Fruchterman-Reingold)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_physics.c")
+    add_executable(test_physics
+        tests/test_physics.c
+        src/graph.c
+    )
+    target_include_directories(test_physics PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${EXTRA_INCLUDES}
+    )
+    target_link_libraries(test_physics PRIVATE
+        Threads::Threads
+        m
+    )
+endif()

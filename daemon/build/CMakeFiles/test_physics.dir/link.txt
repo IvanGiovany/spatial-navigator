@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/test_physics.dir/link.d CMakeFiles/test_physics.dir/tests/test_physics.c.o CMakeFiles/test_physics.dir/src/graph.c.o -o test_physics  -lm

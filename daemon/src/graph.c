@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 void graph_init(Graph *graph) {
     if (!graph) return;
@@ -114,8 +115,130 @@ void graph_print_summary(const Graph *graph) {
     }
 }
 
+void graph_recenter(Node *nodes, int count) {
+    if (!nodes || count <= 0) return;
+
+    Vec3 center = {0.0f, 0.0f, 0.0f};
+    for (int i = 0; i < count; ++i) {
+        center.x += nodes[i].pos.x;
+        center.y += nodes[i].pos.y;
+        center.z += nodes[i].pos.z;
+    }
+    center.x /= (float)count;
+    center.y /= (float)count;
+    center.z /= (float)count;
+
+    for (int i = 0; i < count; ++i) {
+        nodes[i].pos.x -= center.x;
+        nodes[i].pos.y -= center.y;
+        nodes[i].pos.z -= center.z;
+    }
+}
+
 void calculate_forces(Node *nodes, int count) {
-    (void)nodes;
-    (void)count;
-    /* Implemented in Phase 3 */
+    if (!nodes || count <= 1) {
+        return;
+    }
+
+    const float k = PHYSICS_K;
+    const float k_sq = k * k;
+    float temperature = PHYSICS_INITIAL_TEMP;
+
+    for (int iter = 0; iter < PHYSICS_ITERATIONS; ++iter) {
+        /* Step 1: Reset displacement accumulators */
+        for (int i = 0; i < count; ++i) {
+            nodes[i].disp = (Vec3){0.0f, 0.0f, 0.0f};
+        }
+
+        /* Step 2: Repulsive forces (O(N^2) pairwise) */
+        for (int u = 0; u < count - 1; ++u) {
+            for (int v = u + 1; v < count; ++v) {
+                float dx = nodes[u].pos.x - nodes[v].pos.x;
+                float dy = nodes[u].pos.y - nodes[v].pos.y;
+                float dz = nodes[u].pos.z - nodes[v].pos.z;
+                float dist_sq = dx * dx + dy * dy + dz * dz;
+
+                /* Epsilon guard against division by zero */
+                if (dist_sq < 0.0001f) {
+                    dx = 0.01f;
+                    dy = 0.01f;
+                    dz = 0.01f;
+                    dist_sq = dx * dx + dy * dy + dz * dz;
+                }
+
+                /* f_r = k^2 / dist; force_factor = f_r / dist = k^2 / dist_sq */
+                float force_factor = k_sq / dist_sq;
+
+                float fx = dx * force_factor;
+                float fy = dy * force_factor;
+                float fz = dz * force_factor;
+
+                nodes[u].disp.x += fx;
+                nodes[u].disp.y += fy;
+                nodes[u].disp.z += fz;
+
+                nodes[v].disp.x -= fx;
+                nodes[v].disp.y -= fy;
+                nodes[v].disp.z -= fz;
+            }
+        }
+
+        /* Step 3: Attractive forces (Edges) */
+        for (int u = 0; u < count; ++u) {
+            for (int j = 0; j < nodes[u].edge_count; ++j) {
+                int v = nodes[u].edges[j];
+                if (v < 0 || v >= count || u == v) {
+                    continue;
+                }
+
+                float dx = nodes[v].pos.x - nodes[u].pos.x;
+                float dy = nodes[v].pos.y - nodes[u].pos.y;
+                float dz = nodes[v].pos.z - nodes[u].pos.z;
+                float dist_sq = dx * dx + dy * dy + dz * dz;
+
+                if (dist_sq < 0.0001f) {
+                    continue;
+                }
+
+                float dist = sqrtf(dist_sq);
+                /* f_a = dist^2 / k; force_factor = f_a / dist = dist / k */
+                float force_factor = dist / k;
+
+                float fx = dx * force_factor;
+                float fy = dy * force_factor;
+                float fz = dz * force_factor;
+
+                nodes[u].disp.x += fx;
+                nodes[u].disp.y += fy;
+                nodes[u].disp.z += fz;
+
+                nodes[v].disp.x -= fx;
+                nodes[v].disp.y -= fy;
+                nodes[v].disp.z -= fz;
+            }
+        }
+
+        /* Step 4: Apply displacement capped by current temperature */
+        for (int i = 0; i < count; ++i) {
+            float disp_len_sq = nodes[i].disp.x * nodes[i].disp.x +
+                                nodes[i].disp.y * nodes[i].disp.y +
+                                nodes[i].disp.z * nodes[i].disp.z;
+
+            if (disp_len_sq > 0.0001f) {
+                float disp_len = sqrtf(disp_len_sq);
+                float step = (disp_len < temperature) ? disp_len : temperature;
+                float scale = step / disp_len;
+
+                nodes[i].pos.x += nodes[i].disp.x * scale;
+                nodes[i].pos.y += nodes[i].disp.y * scale;
+                nodes[i].pos.z += nodes[i].disp.z * scale;
+            }
+        }
+
+        /* Step 5: Cool temperature */
+        temperature *= PHYSICS_COOLING_FACTOR;
+    }
+
+    /* Centroid re-centering for camera positioning */
+    graph_recenter(nodes, count);
 }

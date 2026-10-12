@@ -26,6 +26,11 @@ typedef struct {
     int capacity;
 } Graph;
 
+#define PHYSICS_K 50.0f
+#define PHYSICS_INITIAL_TEMP 100.0f
+#define PHYSICS_COOLING_FACTOR 0.95f
+#define PHYSICS_ITERATIONS 150
+
 void graph_init(Graph *graph);
 void graph_free(Graph *graph);
 int graph_add_node(Graph *graph, const char *name, float radius, Vec3 pos);
@@ -33,5 +38,6 @@ int graph_find_node_by_name(const Graph *graph, const char *name);
 int graph_add_edge(Graph *graph, int from_id, int to_id);
 void graph_print_summary(const Graph *graph);
 void calculate_forces(Node *nodes, int count);
+void graph_recenter(Node *nodes, int count);
 
 #endif /* SPATIAL_GRAPH_H */

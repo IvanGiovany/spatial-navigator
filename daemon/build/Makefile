@@ -155,6 +155,19 @@ test_parser/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/build
 .PHONY : test_parser/fast
 
+#=============================================================================
+# Target rules for targets named test_physics
+
+# Build rule for target.
+test_physics: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_physics
+.PHONY : test_physics
+
+# fast build rule for target.
+test_physics/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/build
+.PHONY : test_physics/fast
+
 src/graph.o: src/graph.c.o
 .PHONY : src/graph.o
 
@@ -162,6 +175,7 @@ src/graph.o: src/graph.c.o
 src/graph.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.o
 .PHONY : src/graph.c.o
 
 src/graph.i: src/graph.c.i
@@ -171,6 +185,7 @@ src/graph.i: src/graph.c.i
 src/graph.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.i
 .PHONY : src/graph.c.i
 
 src/graph.s: src/graph.c.s
@@ -180,6 +195,7 @@ src/graph.s: src/graph.c.s
 src/graph.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/spatial_daemon.dir/build.make CMakeFiles/spatial_daemon.dir/src/graph.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/src/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/src/graph.c.s
 .PHONY : src/graph.c.s
 
 src/main.o: src/main.c.o
@@ -281,6 +297,30 @@ tests/test_parser.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_parser.dir/build.make CMakeFiles/test_parser.dir/tests/test_parser.c.s
 .PHONY : tests/test_parser.c.s
 
+tests/test_physics.o: tests/test_physics.c.o
+.PHONY : tests/test_physics.o
+
+# target to build an object file
+tests/test_physics.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/tests/test_physics.c.o
+.PHONY : tests/test_physics.c.o
+
+tests/test_physics.i: tests/test_physics.c.i
+.PHONY : tests/test_physics.i
+
+# target to preprocess a source file
+tests/test_physics.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/tests/test_physics.c.i
+.PHONY : tests/test_physics.c.i
+
+tests/test_physics.s: tests/test_physics.c.s
+.PHONY : tests/test_physics.s
+
+# target to generate assembly for a file
+tests/test_physics.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_physics.dir/build.make CMakeFiles/test_physics.dir/tests/test_physics.c.s
+.PHONY : tests/test_physics.c.s
+
 usr/src/tree-sitter/c/0.21.3/parser/src/parser.o: usr/src/tree-sitter/c/0.21.3/parser/src/parser.c.o
 .PHONY : usr/src/tree-sitter/c/0.21.3/parser/src/parser.o
 
@@ -315,6 +355,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... spatial_daemon"
 	@echo "... test_parser"
+	@echo "... test_physics"
 	@echo "... tree_sitter_c_grammar"
 	@echo "... src/graph.o"
 	@echo "... src/graph.i"
@@ -331,6 +372,9 @@ help:
 	@echo "... tests/test_parser.o"
 	@echo "... tests/test_parser.i"
 	@echo "... tests/test_parser.s"
+	@echo "... tests/test_physics.o"
+	@echo "... tests/test_physics.i"
+	@echo "... tests/test_physics.s"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.o"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.i"
 	@echo "... usr/src/tree-sitter/c/0.21.3/parser/src/parser.s"

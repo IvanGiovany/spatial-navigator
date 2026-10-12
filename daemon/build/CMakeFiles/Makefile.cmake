@@ -58,4 +58,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/tree_sitter_c_grammar.dir/DependInfo.cmake"
   "CMakeFiles/spatial_daemon.dir/DependInfo.cmake"
   "CMakeFiles/test_parser.dir/DependInfo.cmake"
+  "CMakeFiles/test_physics.dir/DependInfo.cmake"
   )
